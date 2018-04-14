@@ -58,6 +58,9 @@
         .page .content .input > label {
             display: none;
         }
+        .page .content .input > span {
+            margin: auto;
+        }
         .page .content .input > input {
             width: 250px;
             height: 40px;
@@ -65,7 +68,7 @@
             margin: 10px 5px;
             border: 1px solid #ccc;
             border-radius: 5px;
-            -webkit-box-shadow: 0 0 0 30px white inset;
+            box-shadow: 0 0 0 30px white inset;
             font-size: 16px;
             letter-spacing: 2px;
         }
@@ -74,7 +77,7 @@
             width: 250px;
             padding: 5px 10px;
             height: 40px;
-            margin: 10px 25px;
+            margin: 30px 25px 10px 25px;
             border: 1px solid #333;
             cursor: pointer;
             border-radius: 5px;
@@ -92,6 +95,9 @@
         }
         .page .content .btn > img {
             margin: auto;
+        }
+        .page .content .form .error > input {
+            border: 1px solid red;
         }
         .flex {
             flex: 1;
@@ -128,7 +134,7 @@
                     <input id="password" name="password" type="password" placeholder="Password" onkeydown="submit(event)">
                 </div>
 
-                <div class="btn" onclick="go()">
+                <div class="btn" onclick="login()">
                     <img src="icons/login.svg">
                 </div>
 
@@ -140,44 +146,81 @@
 
     <script>
 
+        var email;
+        var password;
+
+        function init()
+        {
+            email = document.getElementById('email');
+            password = document.getElementById('password');
+        }
+
         function focusNext($ev)
         {
-            (((typeof $ev.which === "number") ? $ev.which : $ev.keyCode) == 13) ? run(document.getElementById('password').focus()) : run();
+            if (((typeof $ev.which === 'number') ? $ev.which : $ev.keyCode) == 13)
+            {
+                password.focus();
+            }
         }
 
         function submit($ev)
         {
-            (((typeof $ev.which === "number") ? $ev.which : $ev.keyCode) == 13) ? run(go) : run();
+            if (((typeof $ev.which === 'number') ? $ev.which : $ev.keyCode) == 13)
+            {
+                login();
+            }
         }
 
-        function go()
+        function login()
         {
-            var email = document.getElementById('email').value;
-            var password = document.getElementById('password').value;
             var xhttp = new XMLHttpRequest();
+
+            email.parentNode.classList.remove('error');
+            password.parentNode.classList.remove('error');
 
             xhttp.onreadystatechange = function()
             {
                 if (this.readyState == 4 && this.status == 200)
                 {
-                    // console.log(xhttp.responseText);
+                    console.log(xhttp.responseText);
                     const response = JSON.parse(xhttp.responseText);
 
-                    if (response.data)
+                    switch (response.data)
                     {
-                        window.location = "";
+                        case 'ok':
+                        {
+                            window.location = "";
+                            break;
+                        }
+                        case 'user_email':
+                        {
+                            email.parentNode.classList.add('error');
+                            break;
+                        }
+                        case 'user_password':
+                        {
+                            password.parentNode.classList.add('error');
+                            break;
+                        }
+                        default: break;
                     }
                 }
             };
             xhttp.open('POST', 'api/login');
             xhttp.setRequestHeader('Content-type', 'application/json;charset=utf-8');
-            xhttp.send(JSON.stringify({'data':{'email':email,'password':password}}));
+            xhttp.send(
+                JSON.stringify(
+                {
+                    'data':
+                    {
+                        'email': email.value,
+                        'password': password.value
+                    }
+                })
+            );
         }
 
-        function run(callback = function(){})
-        {
-            callback();
-        }
+        init();
 
     </script>
 </body>

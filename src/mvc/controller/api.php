@@ -19,45 +19,66 @@ class Api extends Controller
 
     public function login()
     {
+        $_SESSION['error'] = array('user_email'=>'','user_password'=>'');
         $input = json_decode(file_get_contents('php://input'));
 
         try
         {
-            $user_email = (bool) preg_match('//u', $input->data->email) ? $input->data->email : '';
-            $user_password = hash('whirlpool', $input->data->password);
+            $user_email = $input->data->email;
 
-            if (empty($user_email) || empty($user_password))
+            if (empty($user_email))
             {
-                throw new Exception('404');
+                echo json_encode(array('data' => 'user_email'), JSON_FORCE_OBJECT);
+                return;
+            }
+            else
+            {
+                $_SESSION['user_email'] = $user_email;
             }
 
+            $user_password = $input->data->password;
+
+            if (empty($user_password))
+            {
+                echo json_encode(array('data' => 'user_password'), JSON_FORCE_OBJECT);
+                return;
+            }
+            else
+            {
+                $user_password = hash('whirlpool', $user_password);
+            }
+
+            // find id if user exists
             $user_id = $this->controller->model->getUser($user_email, $user_password);
 
             if ($user_id == FALSE)
             {
                 if ($this->controller->model->userExists($user_email))
                 {
-                    throw new Exception('404');
+                    echo json_encode(array('data' => 'user_password'), JSON_FORCE_OBJECT);
+                    return;
                 }
                 else
                 {
+                    // create user if not exists
                     $this->controller->model->addUser($user_email, $user_password);
                     $user_id = $this->controller->model->getUser($user_email, $user_password);
 
                     if ($user_id == FALSE)
                     {
-                        throw new Exception('500');
+                        echo json_encode(array('data' => 'undefined'), JSON_FORCE_OBJECT);
                     }
                 }
             }
 
+            $_SESSION['error'] = array('user_email' => '', 'user_password' => '');
             $_SESSION['user_id'] = $user_id;
 
-            echo json_encode(array('data' => true), JSON_FORCE_OBJECT);
+            echo json_encode(array('data' => 'ok'), JSON_FORCE_OBJECT);
         }
         catch (Exception $e)
         {
-            echo json_encode(array('data' => false), JSON_FORCE_OBJECT);
+            echo json_encode(array('data' => 'undefined'), JSON_FORCE_OBJECT);
         }
     }
 
