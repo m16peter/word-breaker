@@ -1,98 +1,57 @@
 <?php
 
-require MVC . 'types.php';
-
 /*
 * API
 */
 class Api extends Controller
 {
+    private $controller;
+
+    function __construct()
+    {
+        $this->controller = new Controller();
+    }
 
     public function index()
     {
         require VIEW . 'api.php';
     }
 
-    // TODO
     public function login()
     {
-        $_SESSION['auth'] = true;
-
-        // 1. validate:
-        // - $_POST['email']
-        // - $_POST['password']
-
-        // 2. create new user if not exists
-
-        // 3. login
-
-        echo json_encode(array('data' => true), JSON_FORCE_OBJECT);
-    }
-
-    public function logout()
-    {
-        if (isset($_SESSION['auth']))
-        {
-            unset($_SESSION['auth']);
-            echo json_encode(array('data' => true), JSON_FORCE_OBJECT);
-        }
-    }
-
-    // TODO: connect to db
-    public function getDocuments()
-    {
-        // TODO: get json (id, name) from db
-        echo json_encode(new Documents(array(
-            new Document(1, 'New Document 1'),
-            new Document(2, 'New Document 2')
-        )));
-    }
-
-    // TODO: connect to db
-    public function newDocument()
-    {
-        $json;
-        $document_name;
-        $document_id;
+        $input = json_decode(file_get_contents('php://input'));
 
         try
         {
-            $json = json_decode(file_get_contents('php://input'));
-            $document_name = $json->data;
-        }
-        catch (Exception $e)
-        {
-            $document_name = 'New Document';
-        }
+            $user_email = (bool) preg_match('//u', $input->data->email) ? $input->data->email : '';
+            $user_password = hash('whirlpool', $input->data->password);
 
-        // TODO: insert in db new json document
-        // - source-lang
-        // - target-lang
-        // - doc-name
+            if (empty($user_email) || empty($user_password))
+            {
+                throw new Exception('404');
+            }
 
-        // TODO: get id from db
-        $document_id = rand(1, 100);
+            $user_id = $this->controller->model->getUser($user_email, $user_password);
 
-        // TODO: if error occurs
-        if (false)
-        {
-            echo '{}';
-        }
-        else
-        {
-            echo json_encode(array('data' => new Document($document_id, $document_name . ' ' . $document_id)), JSON_FORCE_OBJECT);
-        }
-    }
+            if ($user_id == FALSE)
+            {
+                if ($this->controller->model->userExists($user_email))
+                {
+                    throw new Exception('404');
+                }
+                else
+                {
+                    $this->controller->model->addUser($user_email, $user_password);
+                    $user_id = $this->controller->model->getUser($user_email, $user_password);
 
-    // TODO: connect to db
-    public function deleteDocument()
-    {
-        try
-        {
-            $json = json_decode(file_get_contents('php://input'));
-            $document_id = $json->data;
+                    if ($user_id == FALSE)
+                    {
+                        throw new Exception('500');
+                    }
+                }
+            }
 
-            // TODO: delete json (id) from db
+            $_SESSION['user_id'] = $user_id;
 
             echo json_encode(array('data' => true), JSON_FORCE_OBJECT);
         }
@@ -102,4 +61,62 @@ class Api extends Controller
         }
     }
 
+    public function logout()
+    {
+        session_destroy();
+        echo json_encode(array('data' => true), JSON_FORCE_OBJECT);
+    }
+
+    public function getDocuments()
+    {
+        $documents = $this->controller->model->getAllUsersJsons($_SESSION['user_id']);
+        $list = array();
+
+        foreach($documents as $document)
+        {
+            $source_language = $this->controller->model->getLanguage($document->language_id_source);
+            $target_language = $this->controller->model->getLanguage($document->language_id_target);
+
+            array_push($list, new Json($document->json_id, $document->json_name, $source_language, $target_language));
+        }
+
+        echo json_encode(new JsonArrayResponse($list));
+    }
+
+    public function newDocument()
+    {
+        // TODO: make this default in globals:
+        $language_id_source = 1;
+        $language_id_target = 2;
+        $user_id = $_SESSION['user_id'];
+        $json_name = 'New Document';
+        $json_string = '{"data":[]}';
+
+        $this->controller->model->addJson($language_id_source, $language_id_target, $user_id, $json_name, $json_string);
+
+        $documents = $this->controller->model->getAllUsersJsons($user_id);
+        $json_id = $documents[count($documents) - 1]->json_id;
+
+        $source_language = $this->controller->model->getLanguage($language_id_source);
+        $target_language = $this->controller->model->getLanguage($language_id_target);
+
+        echo json_encode(array('data' => new Json($json_id, $json_name, $source_language, $target_language)), JSON_FORCE_OBJECT);
+    }
+
+    public function deleteDocument()
+    {
+        $input = json_decode(file_get_contents('php://input'));
+        $json_id = $input->data;
+        $user_id = $_SESSION['user_id'];
+
+        if ($this->controller->model->getJson($user_id, $json_id) != FALSE)
+        {
+            $this->controller->model->deleteJson($json_id);
+            echo json_encode(array('data' => true), JSON_FORCE_OBJECT);
+        }
+        else
+        {
+            echo json_encode(array('data' => false), JSON_FORCE_OBJECT);
+        }
+    }
 }

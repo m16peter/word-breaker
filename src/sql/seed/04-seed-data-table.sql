@@ -1,11 +1,6 @@
-USE `word-breaker`;
+USE `word_breaker`;
 
 INSERT INTO `data`
-    (`source-language-id`, `target-language-id`, `source`, `target`)
+    (`language_id_source`, `language_id_target`, `data_source`, `data_target`)
 VALUES
-    ('1', '2', 'OK', 'OK');
-
-INSERT INTO `data`
-    (`source-language-id`, `target-language-id`, `source`, `target`)
-VALUES
-    ('1', '2', '1', '1');
+    (1, 2, 'OK', 'OK');

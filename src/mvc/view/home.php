@@ -46,7 +46,7 @@
             display: flex;
             width: 250px;
             height: 50px;
-            font-size: 24px;
+            font-size: 32px;
         }
         .page .header .logo > div {
             margin: auto;
@@ -162,13 +162,17 @@
 
         <div class="header">
 
+            <div style="width: 64px;"></div>
+
+            <div class="flex"></div>
+
             <a class="logo" href=''>
                 <div>WORD BREAKER</div>
             </a>
 
             <div class="flex"></div>
 
-            <div class="logout" onclick="logout('api/logout')">
+            <div class="logout" onclick="logout()">
                 <div>
                     <img src="icons/power-off.svg" alt="Logout">
                 </div>
@@ -184,7 +188,8 @@
                     <div>New Document:</div>
                 </div>
 
-                <div class="new-document" onclick="createDocument('New Document', 'api/newDocument')">
+                <!-- Add new document -->
+                <div class="new-document" onclick="createDocument()">
                     <div>
                         <img src="icons/plus.svg" alt="New Document">
                     </div>
@@ -200,12 +205,12 @@
 
                 <div class="documents">
 
-                    <!-- Document Model -->
-                    <div id="document-model" class="document document-model" onclick="deleteDocument(event)" data-id="0" data-node="parent">
+                    <!-- Document model -->
+                    <div id="document-model" class="document document-model" onclick="deleteDocument(event)" data-node="parent">
                         <div data-node="child"></div>
                     </div>
 
-                    <!-- List of documents -->
+                    <!-- List of all documents -->
                     <div id="list"></div>
 
                 </div>
@@ -218,7 +223,6 @@
 
     <script>
 
-        // elements
         var new_document_name;
         var document_model;
         var right_side;
@@ -243,49 +247,35 @@
 
                     for (var i = 0; i < response['data'].length; i++)
                     {
-                        addDocument(response['data'][i]['id'], response['data'][i]['name']);
+                        addDocument(
+                            response['data'][i]['json_id'],
+                            response['data'][i]['json_name'],
+                            response['data'][i]['source'],
+                            response['data'][i]['target']
+                        );
                     }
 
                     right_side.style.opacity = (list.children.length === 0) ? 0 : 1;
                 }
             };
-            xhttp.open('GET', 'api/getDocuments');
+            xhttp.open('POST', 'api/getDocuments');
             xhttp.setRequestHeader('Content-type', 'application/json;charset=utf-8');
             xhttp.send();
         }
 
-        function logout(url)
-        {
-            var xhttp = new XMLHttpRequest();
-
-            xhttp.onreadystatechange = function()
-            {
-                if (this.readyState == 4 && this.status == 200)
-                {
-                    // console.log(xhttp.responseText);
-                    const response = JSON.parse(xhttp.responseText);
-
-                    if (response.data)
-                    {
-                        window.location = '';
-                    }
-                }
-            };
-            xhttp.open('GET', url);
-            xhttp.send();
-        }
-
-        function addDocument(document_id, document_name)
+        function addDocument(id, name, source, target)
         {
             cloned_item = document_model.cloneNode(true);
-            cloned_item.childNodes[1].innerHTML = document_name;
+            cloned_item.childNodes[1].innerHTML = name;
             cloned_item.classList.remove('document-model');
             cloned_item.removeAttribute('id');
-            cloned_item.setAttribute('data-id', document_id);
+            cloned_item.setAttribute('data-id', id);
+            cloned_item.setAttribute('data-source', source);
+            cloned_item.setAttribute('data-target', target);
             list.prepend(cloned_item);
         }
 
-        function createDocument(document_name, url)
+        function createDocument()
         {
             var xhttp = new XMLHttpRequest();
 
@@ -298,14 +288,19 @@
 
                     if (response.data)
                     {
-                        addDocument(response['data']['id'], response['data']['name']);
+                        addDocument(
+                            response['data']['json_id'],
+                            response['data']['json_name'],
+                            response['data']['source'],
+                            response['data']['target']
+                        );
                         right_side.style.opacity = (list.children.length === 0) ? 0 : 1;
                     }
                 }
             };
-            xhttp.open('POST', url);
+            xhttp.open('POST', 'api/newDocument');
             xhttp.setRequestHeader('Content-type', 'application/json;charset=utf-8');
-            xhttp.send(JSON.stringify({"data": document_name}));
+            xhttp.send();
         }
 
         function deleteDocument($ev)
@@ -334,7 +329,29 @@
             };
             xhttp.open('POST', 'api/deleteDocument');
             xhttp.setRequestHeader('Content-type', 'application/json;charset=utf-8');
-            xhttp.send(JSON.stringify({"data": $ev.target.getAttribute('data-id')}));
+            xhttp.send(JSON.stringify({"data": element.getAttribute('data-id')}));
+        }
+
+        function logout()
+        {
+            var xhttp = new XMLHttpRequest();
+
+            xhttp.onreadystatechange = function()
+            {
+                if (this.readyState == 4 && this.status == 200)
+                {
+                    // console.log(xhttp.responseText);
+                    const response = JSON.parse(xhttp.responseText);
+
+                    if (response.data)
+                    {
+                        window.location = '';
+                    }
+                }
+            };
+            xhttp.open('POST', 'api/logout');
+            xhttp.setRequestHeader('Content-type', 'application/json;charset=utf-8');
+            xhttp.send();
         }
 
         init();

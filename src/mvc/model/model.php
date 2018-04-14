@@ -4,119 +4,90 @@ class Model
 {
     function __construct($db)
     {
-        try
-        {
+        try {
             $this->db = $db;
         }
-        catch (PDOException $e)
-        {
-            exit('Database connection could not be established.');
+        catch (PDOException $e) {
+            exit('');
         }
     }
 
-    public function translateRow($row = '')
+    public function getUser($user_email, $user_password)
     {
-        return ('');
-    }
-
-    public function updateRow($row = '')
-    {}
-
-    public function getJson()
-    {
-        return ('{"data":[]}');
-    }
-
-    public function saveJson($jsonString = '{"data":[]}')
-    {}
-
-    public function createJson($name)
-    {}
-
-    public function deleteJson($name)
-    {}
-
-    public function getAllUserNames($username)
-    {}
-
-    public function login($email, $password)
-    {
-        return (false);
-    }
-
-    /**
-     * Get all songs from database
-     */
-    public function getAllSongs()
-    {
-        $sql = "SELECT id, artist, track, link FROM song";
+        $sql = "SELECT `user_id` FROM `user` WHERE `user_email`=:user_email AND `user_password`=:user_password";
         $query = $this->db->prepare($sql);
-        $query->execute();
+        $parameters = array(':user_email' => $user_email, ':user_password' => $user_password);
+        $query->execute($parameters);
+        $result = $query->fetch();
 
-        // fetchAll() is the PDO method that gets all result rows, here in object-style because we defined this in
-        // mvc/controller.php! If you prefer to get an associative array as the result, then do
-        // $query->fetchAll(PDO::FETCH_ASSOC); or change mvc/controller.php's PDO options to
-        // $options = array(PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC ...
-        return $query->fetchAll();
+        return ($result == FALSE) ? (FALSE) : ($result->user_id);
     }
 
-    /**
-     * Add a song to database
-     * TODO put this explanation into readme and remove it from here
-     * Please note that it's not necessary to "clean" our input in any way. With PDO all input is escaped properly
-     * automatically. We also don't use strip_tags() etc. here so we keep the input 100% original (so it's possible
-     * to save HTML and JS to the database, which is a valid use case). Data will only be cleaned when putting it out
-     * in the views (see the views for more info).
-     * @param string $artist Artist
-     * @param string $track Track
-     * @param string $link Link
-     */
-    public function addSong($artist, $track, $link)
+    public function addUser($user_email, $user_password)
     {
-        $sql = "INSERT INTO song (artist, track, link) VALUES (:artist, :track, :link)";
+        $sql = "INSERT INTO `user` (`user_email`, `user_password`) VALUES (:user_email, :user_password)";
         $query = $this->db->prepare($sql);
-        $parameters = array(':artist' => $artist, ':track' => $track, ':link' => $link);
-
-        // useful for debugging: you can see the SQL behind above construction by using:
-        // echo '[ PDO DEBUG ]: ' . Helper::debugPDO($sql, $parameters);  exit();
-
+        $parameters = array(':user_email' => $user_email, ':user_password' => $user_password);
         $query->execute($parameters);
     }
 
-    /**
-     * Delete a song in the database
-     * Please note: this is just an example! In a real application you would not simply let everybody
-     * add/update/delete stuff!
-     * @param int $song_id Id of song
-     */
-    public function deleteSong($song_id)
+    public function userExists($user_email)
     {
-        $sql = "DELETE FROM song WHERE id = :song_id";
+        $sql = "SELECT `user_id` FROM `user` WHERE `user_email`=:user_email";
         $query = $this->db->prepare($sql);
-        $parameters = array(':song_id' => $song_id);
+        $parameters = array(':user_email' => $user_email);
+        $query->execute($parameters);
+        $result = $query->fetch();
 
-        // useful for debugging: you can see the SQL behind above construction by using:
-        // echo '[ PDO DEBUG ]: ' . Helper::debugPDO($sql, $parameters);  exit();
+        return !($result == FALSE);
+    }
 
+    public function getJson($user_id, $json_id)
+    {
+        $sql = "SELECT `json_id` FROM `json` WHERE `user_id`=:user_id AND `json_id`=:json_id";
+        $query = $this->db->prepare($sql);
+        $parameters = array(':user_id' => $user_id, ':json_id' => $json_id);
+        $query->execute($parameters);
+        $result = $query->fetch();
+
+        return ($result == FALSE) ? (FALSE) : ($result->json_id);
+    }
+
+    public function getAllUsersJsons($user_id)
+    {
+        $sql = "SELECT `json_id`, `language_id_source`, `language_id_target`, `json_name` FROM `json` WHERE `user_id`=:user_id";
+        $query = $this->db->prepare($sql);
+        $parameters = array(':user_id' => $user_id);
+        $query->execute($parameters);
+
+        return ($query->fetchAll());
+    }
+
+    public function getLanguage($language_id)
+    {
+        $sql = "SELECT `language_name` FROM `language` WHERE `language_id`=:language_id";
+        $query = $this->db->prepare($sql);
+        $parameters = array(':language_id' => $language_id);
+        $query->execute($parameters);
+        $result = $query->fetch();
+
+        return ($result->language_name);
+    }
+
+    public function addJson($language_id_source, $language_id_target, $user_id, $json_name, $json_string)
+    {
+        $sql = "INSERT INTO `json` (`language_id_source`, `language_id_target`, `user_id`, `json_name`, `json_string`) VALUES (:language_id_source, :language_id_target, :user_id, :json_name, :json_string)";
+        $query = $this->db->prepare($sql);
+        $parameters = array(':language_id_source' => $language_id_source, ':language_id_target' => $language_id_target, ':user_id' => $user_id, ':json_name' => $json_name, ':json_string' => $json_string);
         $query->execute($parameters);
     }
 
-    /**
-     * Get a song from database
-     */
-    public function getSong($song_id)
+    public function deleteJson($json_id)
     {
-        $sql = "SELECT id, artist, track, link FROM song WHERE id = :song_id LIMIT 1";
+        $sql = "DELETE FROM `json` WHERE json_id=:json_id";
         $query = $this->db->prepare($sql);
-        $parameters = array(':song_id' => $song_id);
-
-        // useful for debugging: you can see the SQL behind above construction by using:
-        // echo '[ PDO DEBUG ]: ' . Helper::debugPDO($sql, $parameters);  exit();
-
+        $parameters = array(':json_id' => $json_id);
         $query->execute($parameters);
-
-        // fetch() is the PDO method that get exactly one result
-        return $query->fetch();
     }
 
     /**
@@ -143,17 +114,42 @@ class Model
         $query->execute($parameters);
     }
 
-    /**
-     * Get simple "stats". This is just a simple demo to show
-     * how to use more than one model in a controller (see application/controller/songs.php for more)
-     */
-    public function getAmountOfSongs()
+    public function createDB()
     {
-        $sql = "SELECT COUNT(id) AS amount_of_songs FROM song";
-        $query = $this->db->prepare($sql);
-        $query->execute();
+        if (isset($_SESSION['user_id']))
+        {
+            if ($_SESSION['user_id'] == 1)
+            {
+                $files = scandir(SRC . 'sql/create');
+                $files = array_values(array_diff($files, array(".", "..")));
 
-        // fetch() is the PDO method that get exactly one result
-        return $query->fetch()->amount_of_songs;
+                foreach($files as $file)
+                {
+                    $sql = file_get_contents(SRC . 'sql/create/' . $file);
+                    $query = $this->db->prepare($sql);
+                    $query->execute();
+                }
+
+            }
+        }
+    }
+
+    public function seedDB()
+    {
+        if (isset($_SESSION['user_id']))
+        {
+            if ($_SESSION['user_id'] == 1)
+            {
+                $files = scandir(SRC . 'sql/seed');
+                $files = array_values(array_diff($files, array(".", "..")));
+
+                foreach($files as $file)
+                {
+                    $sql = file_get_contents(SRC . 'sql/seed/' . $file);
+                    $query = $this->db->prepare($sql);
+                    $query->execute();
+                }
+            }
+        }
     }
 }

@@ -1,3 +1,6 @@
-USE `word-breaker`;
+USE `word_breaker`;
 
-INSERT INTO `language` (`language`) VALUES ('sk'), ('ro');
+INSERT INTO `language`
+    (`language_name`)
+VALUES
+    ('sk'), ('ro');

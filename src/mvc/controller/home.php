@@ -16,7 +16,7 @@ class Home extends Controller
     */
     public function index()
     {
-        if (isset($_SESSION['auth']))
+        if (isset($_SESSION['user_id']))
         {
             require VIEW . 'home.php';
         }

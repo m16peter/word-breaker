@@ -1,23 +1,25 @@
 <?php
 
-class Document
+class Json
 {
-    function __construct($id, $name)
+    function __construct($json_id, $json_name, $source, $target)
     {
-        $this->id = $id;
-        $this->name = $name;
+        $this->json_id = $json_id;
+        $this->json_name = $json_name;
+        $this->source = $source;
+        $this->target = $target;
     }
 }
 
-class Documents
+class JsonArrayResponse
 {
-    public $data = array();
-
-    function __construct($documents)
+    function __construct($list)
     {
-        foreach($documents as $document)
+        $this->data = array();
+
+        foreach($list as $item)
         {
-            array_push($this->data, $document);
+            array_push($this->data, $item);
         }
     }
 }

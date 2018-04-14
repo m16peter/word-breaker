@@ -38,7 +38,7 @@
             display: flex;
             width: 250px;
             height: 50px;
-            font-size: 24px;
+            font-size: 32px;
         }
         .page .header .logo > div {
             margin: auto;
@@ -90,7 +90,7 @@
             box-shadow: 0px 0px 15px 1px rgba(0,0,0, .75);
             background: #fff;
         }
-        .page .content .btn > div {
+        .page .content .btn > img {
             margin: auto;
         }
         .flex {
@@ -104,9 +104,13 @@
 
         <div class="header">
 
+            <div class="flex"></div>
+
             <a class="logo" href="">
                 <div>WORD BREAKER</div>
             </a>
+
+            <div class="flex"></div>
             
         </div>
 
@@ -124,8 +128,8 @@
                     <input id="password" name="password" type="password" placeholder="Password" onkeydown="submit(event)">
                 </div>
 
-                <div class="btn" onclick="login()">
-                    <div>LOGIN</div>
+                <div class="btn" onclick="go()">
+                    <img src="icons/login.svg">
                 </div>
 
             </div>
@@ -143,10 +147,10 @@
 
         function submit($ev)
         {
-            (((typeof $ev.which === "number") ? $ev.which : $ev.keyCode) == 13) ? run(login) : run();
+            (((typeof $ev.which === "number") ? $ev.which : $ev.keyCode) == 13) ? run(go) : run();
         }
 
-        function login()
+        function go()
         {
             var email = document.getElementById('email').value;
             var password = document.getElementById('password').value;
