@@ -2,12 +2,10 @@
 
 class Json
 {
-    function __construct($json_id, $json_name, $source, $target)
+    function __construct($json_id, $json_name)
     {
         $this->json_id = $json_id;
         $this->json_name = $json_name;
-        $this->source = $source;
-        $this->target = $target;
     }
 }
 

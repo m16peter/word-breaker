@@ -53,9 +53,9 @@ class Model
         return ($result == FALSE) ? (FALSE) : ($result->json_id);
     }
 
-    public function getAllUsersJsons($user_id)
+    public function getJsonList($user_id)
     {
-        $sql = "SELECT `json_id`, `language_id_source`, `language_id_target`, `json_name` FROM `json` WHERE `user_id`=:user_id";
+        $sql = "SELECT `json_id`, `json_name` FROM `json` WHERE `user_id`=:user_id";
         $query = $this->db->prepare($sql);
         $parameters = array(':user_id' => $user_id);
         $query->execute($parameters);
@@ -87,30 +87,6 @@ class Model
         $sql = "DELETE FROM `json` WHERE json_id=:json_id";
         $query = $this->db->prepare($sql);
         $parameters = array(':json_id' => $json_id);
-        $query->execute($parameters);
-    }
-
-    /**
-     * Update a song in database
-     * // TODO put this explaination into readme and remove it from here
-     * Please note that it's not necessary to "clean" our input in any way. With PDO all input is escaped properly
-     * automatically. We also don't use strip_tags() etc. here so we keep the input 100% original (so it's possible
-     * to save HTML and JS to the database, which is a valid use case). Data will only be cleaned when putting it out
-     * in the views (see the views for more info).
-     * @param string $artist Artist
-     * @param string $track Track
-     * @param string $link Link
-     * @param int $song_id Id
-     */
-    public function updateSong($artist, $track, $link, $song_id)
-    {
-        $sql = "UPDATE song SET artist = :artist, track = :track, link = :link WHERE id = :song_id";
-        $query = $this->db->prepare($sql);
-        $parameters = array(':artist' => $artist, ':track' => $track, ':link' => $link, ':song_id' => $song_id);
-
-        // useful for debugging: you can see the SQL behind above construction by using:
-        // echo '[ PDO DEBUG ]: ' . Helper::debugPDO($sql, $parameters);  exit();
-
         $query->execute($parameters);
     }
 

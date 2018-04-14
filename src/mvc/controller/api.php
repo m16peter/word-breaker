@@ -90,18 +90,16 @@ class Api extends Controller
 
     public function getDocuments()
     {
-        $documents = $this->controller->model->getAllUsersJsons($_SESSION['user_id']);
-        $list = array();
+        $user_id = $_SESSION['user_id'];
+        $list = $this->controller->model->getJsonList($user_id);
+        $response = array();
 
-        foreach($documents as $document)
+        foreach($list as $item)
         {
-            $source_language = $this->controller->model->getLanguage($document->language_id_source);
-            $target_language = $this->controller->model->getLanguage($document->language_id_target);
-
-            array_push($list, new Json($document->json_id, $document->json_name, $source_language, $target_language));
+            array_push($response, new Json($item->json_id, $item->json_name));
         }
 
-        echo json_encode(new JsonArrayResponse($list));
+        echo json_encode(new JsonArrayResponse($response));
     }
 
     public function newDocument()
@@ -115,7 +113,7 @@ class Api extends Controller
 
         $this->controller->model->addJson($language_id_source, $language_id_target, $user_id, $json_name, $json_string);
 
-        $documents = $this->controller->model->getAllUsersJsons($user_id);
+        $documents = $this->controller->model->getJsonList($user_id);
         $json_id = $documents[count($documents) - 1]->json_id;
 
         $source_language = $this->controller->model->getLanguage($language_id_source);
@@ -133,6 +131,23 @@ class Api extends Controller
         if ($this->controller->model->getJson($user_id, $json_id) != FALSE)
         {
             $this->controller->model->deleteJson($json_id);
+            echo json_encode(array('data' => true), JSON_FORCE_OBJECT);
+        }
+        else
+        {
+            echo json_encode(array('data' => false), JSON_FORCE_OBJECT);
+        }
+    }
+
+    public function selectDocument()
+    {
+        $input = json_decode(file_get_contents('php://input'));
+        $json_id = $input->data;
+        $user_id = $_SESSION['user_id'];
+
+        if ($this->controller->model->getJson($user_id, $json_id) != FALSE)
+        {
+            $_SESSION['json_id'] = $json_id;
             echo json_encode(array('data' => true), JSON_FORCE_OBJECT);
         }
         else

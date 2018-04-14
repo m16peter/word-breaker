@@ -4,10 +4,17 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Web Translation app, using Google Translate's API...">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-config" content="icons/browserconfig.xml">
+    <meta name="theme-color" content="#ffffff">
 
-    <title>Login - Word Breaker</title>
+    <title>Word Breaker</title>
 
-    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16x16.png">
+    <link rel="manifest" href="icons/site.webmanifest">
+    <link rel="shortcut icon" href="icons/favicon.ico">
     
     <style>
         * {
@@ -106,7 +113,7 @@
 </head>
 <body>
 
-    <div class="page">
+    <main class="page">
 
         <div class="header">
 
@@ -125,24 +132,22 @@
             <div class="form">
 
                 <div class="input">
-                    <label for="email">Email</label>
-                    <input id="email" name="email" type="text" placeholder="Email" onkeydown="focusNext(event)">
+                    <input id="email" name="email" aria-label="Email" type="text" placeholder="Email" onkeydown="focusNext(event)">
                 </div>
 
                 <div class="input">
-                    <label for="password">Password</label>
-                    <input id="password" name="password" type="password" placeholder="Password" onkeydown="submit(event)">
+                    <input id="password" name="password" aria-label="Password" type="password" placeholder="Password" onkeydown="submit(event)">
                 </div>
 
                 <div class="btn" onclick="login()">
-                    <img src="icons/login.svg">
+                    <img src="icons/login.svg" alt="Login / Register">
                 </div>
 
             </div>
 
         </div>
 
-    </div>
+    </main>
 
     <script>
 

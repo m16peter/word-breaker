@@ -31,10 +31,14 @@
             background: #fafafa;
             font-family: consolas;
         }
+        .flex {
+            flex: 1;
+        }
         .page {
             width: 100%;
             height: 100%;
         }
+        /* header */
         .page .header {
             display: flex;
             width: 100%;
@@ -70,21 +74,19 @@
         .page .header .logout > div > img {
             margin-top: 2px;
         }
+        /* content */
         .page .content {
             display: flex;
             width: 100%;
             height: calc(100% - 51px);
         }
-        .page .content .left-side {
-            border-right: 1px dashed #333;
+        .page .content > div {
+            margin: 0 auto;
         }
-        .page .content .right-side {
-            overflow-y: auto;
-            opacity: 0;
-            transition: all 300ms ease-in-out;
-        }
-        .page .content .right-side .documents {
-            margin-bottom: 50px;
+         .page .content > div > div {
+            display: flex;
+            flex-direction: column;
+            margin: auto;
         }
         .page .content > div .title {
             display: flex;
@@ -96,15 +98,19 @@
         .page .content > div .title > div {
             margin: auto 0;
         }
-        .page .content > div > div {
-            margin: 0 auto;
+        /* left-side */
+        .page .content .left-side {
+            border-right: 1px dashed #333;
+        }
+        .page .content .left-side .title {
+            margin: 60px auto 50px auto;
         }
         .page .content > div .new-document {
             display: flex;
             width: 250px;
             height: 250px;
             border: 1px solid #aaa;
-            margin: auto;
+            margin: 0 auto;
             border-radius: 5px;
             background: #fafafa;
             cursor: pointer;
@@ -119,15 +125,17 @@
             background: #fff;
             box-shadow: 0px 0px 15px 1px rgba(0,0,0, .75);
         }
-        .page .content > div {
-            margin: 0 auto;
+        /* right-side */
+        .page .content .right-side {
+            overflow-y: auto;
+            opacity: 0;
+            transition: all 300ms ease-in-out;
         }
-        .page .content > div > div {
-            display: flex;
-            flex-direction: column;
-            margin: auto;
+        .page .content .right-side .documents {
+            margin-bottom: 50px;
         }
         .page .content > div .document {
+            position: relative;
             display: flex;
             width: 250px;
             height: 50px;
@@ -142,23 +150,38 @@
             background: #fff;
             box-shadow: 0px 0px 15px 1px rgba(0,0,0, .75);
         }
-        .page .content > div .document > div {
-            margin: auto;
-        }
-        .page .content > div .create-new-document {
-            display: none;
-        }
         .page .content > div .document-model {
             display: none;
         }
-        .flex {
-            flex: 1;
+        .page .content > div .document > div {
+            width: 100%;
+            display: flex;
+        }
+        .page .content > div .document > div > span {
+            margin: auto;
+        }
+        .page .content > div .document .delete {
+            position: absolute;
+            display: flex;
+            width: 50px;
+            height: 50px;
+            background: transparent;
+            top: 0;
+            right: -50px;
+            opacity: 0;
+            transition: all 100ms ease-in-out;
+        }
+        .page .content > div .document .delete img {
+            margin: auto;
+        }
+        .page .content > div .document:hover .delete {
+            opacity: 1;
         }
     </style>
 </head>
 <body>
 
-    <div class="page">
+    <main class="page">
 
         <div class="header">
 
@@ -206,8 +229,16 @@
                 <div class="documents">
 
                     <!-- Document model -->
-                    <div id="document-model" class="document document-model" onclick="deleteDocument(event)" data-node="parent">
-                        <div data-node="child"></div>
+                    <div id="document-model" class="document document-model">
+
+                        <div onclick="selectDocument(event)" data-node="parent">
+                            <span data-node="child"></span>
+                        </div>
+
+                        <div data-node="parent" class="delete" onclick="deleteDocument(event)">
+                            <img data-node="child" src="icons/delete.svg" alt="Delete Document">
+                        </div>
+
                     </div>
 
                     <!-- List of all documents -->
@@ -219,7 +250,7 @@
 
         </div>
 
-    </div>
+    </main>
 
     <script>
 
@@ -228,6 +259,8 @@
         var right_side;
         var list;
         var cloned_item;
+        var selectedId;
+        var selectedElement;
 
         function init()
         {
@@ -235,6 +268,9 @@
             document_model = document.getElementById('document-model');
             right_side = document.getElementById('right-side');
             list = document.getElementById('list');
+
+            selectedId = 0;
+            selectedElement = undefined;
 
             var xhttp = new XMLHttpRequest();
 
@@ -245,13 +281,11 @@
                     // console.log(xhttp.responseText);
                     const response = JSON.parse(xhttp.responseText);
 
-                    for (var i = 0; i < response['data'].length; i++)
+                    for (var i = 0; i < response.data.length; i++)
                     {
                         addDocument(
-                            response['data'][i]['json_id'],
-                            response['data'][i]['json_name'],
-                            response['data'][i]['source'],
-                            response['data'][i]['target']
+                            response.data[i].json_id,
+                            response.data[i].json_name
                         );
                     }
 
@@ -263,15 +297,12 @@
             xhttp.send();
         }
 
-        function addDocument(id, name, source, target)
+        function addDocument(id, name)
         {
             cloned_item = document_model.cloneNode(true);
-            cloned_item.childNodes[1].innerHTML = name;
+            cloned_item.children[0].children[0].innerHTML = name;
             cloned_item.classList.remove('document-model');
-            cloned_item.removeAttribute('id');
-            cloned_item.setAttribute('data-id', id);
-            cloned_item.setAttribute('data-source', source);
-            cloned_item.setAttribute('data-target', target);
+            cloned_item.setAttribute('id', id);
             list.prepend(cloned_item);
         }
 
@@ -289,10 +320,8 @@
                     if (response.data)
                     {
                         addDocument(
-                            response['data']['json_id'],
-                            response['data']['json_name'],
-                            response['data']['source'],
-                            response['data']['target']
+                            response.data.json_id,
+                            response.data.json_name
                         );
                         right_side.style.opacity = (list.children.length === 0) ? 0 : 1;
                     }
@@ -303,15 +332,10 @@
             xhttp.send();
         }
 
-        function deleteDocument($ev)
+        function selectDocument($ev)
         {
-            var element = $ev.target;
+            select($ev);
             var xhttp = new XMLHttpRequest();
-
-            if (element.getAttribute('data-node') === 'child')
-            {
-                element = element.parentNode;
-            }
 
             xhttp.onreadystatechange = function()
             {
@@ -322,14 +346,67 @@
 
                     if (response.data)
                     {
-                        element.parentNode.removeChild(element);
-                        right_side.style.opacity = (list.children.length === 0) ? 0 : 1;
+                        window.location = 'translate';
                     }
                 }
             };
-            xhttp.open('POST', 'api/deleteDocument');
+            xhttp.open('POST', 'api/selectDocument');
             xhttp.setRequestHeader('Content-type', 'application/json;charset=utf-8');
-            xhttp.send(JSON.stringify({"data": element.getAttribute('data-id')}));
+            xhttp.send(
+                JSON.stringify(
+                    {
+                        'data': selectedElement.getAttribute('id')
+                    }
+                )
+            );
+        }
+
+        function select($ev)
+        {
+            console.log($ev.target);
+
+            if ($ev.target.getAttribute('data-node') === 'child')
+            {
+                selectedElement = $ev.target.parentNode.parentNode;
+            }
+            else
+            {
+                selectedElement = $ev.target.parentNode;
+            }
+        }
+
+        function deleteDocument($ev)
+        {
+            select($ev);
+
+            if (confirm('Do you really want to delete "' + selectedElement.children[0].children[0].innerText + '"? This action cannot be reversed!'))
+            {
+                var xhttp = new XMLHttpRequest();
+
+                xhttp.onreadystatechange = function()
+                {
+                    if (this.readyState == 4 && this.status == 200)
+                    {
+                        // console.log(xhttp.responseText);
+                        const response = JSON.parse(xhttp.responseText);
+
+                        if (response.data)
+                        {
+                            list.removeChild(selectedElement);
+                            right_side.style.opacity = (list.children.length === 0) ? 0 : 1;
+                        }
+                    }
+                };
+                xhttp.open('POST', 'api/deleteDocument');
+                xhttp.setRequestHeader('Content-type', 'application/json;charset=utf-8');
+                xhttp.send(
+                    JSON.stringify(
+                        {
+                            'data': selectedElement.getAttribute('id')
+                        }
+                    )
+                );
+            }
         }
 
         function logout()
