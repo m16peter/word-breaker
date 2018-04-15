@@ -175,6 +175,9 @@
             margin: auto;
         }
         .page .content > div .document:hover .delete {
+            opacity: 0.25;
+        }
+        .page .content > div .document .delete:hover {
             opacity: 1;
         }
     </style>
