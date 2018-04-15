@@ -42,7 +42,7 @@ class Model
         return !($result == FALSE);
     }
 
-    public function getJson($user_id, $json_id)
+    public function jsonExists($user_id, $json_id)
     {
         $sql = "SELECT `json_id` FROM `json` WHERE `user_id`=:user_id AND `json_id`=:json_id";
         $query = $this->db->prepare($sql);
@@ -50,7 +50,29 @@ class Model
         $query->execute($parameters);
         $result = $query->fetch();
 
-        return ($result == FALSE) ? (FALSE) : ($result->json_id);
+        return !($result == FALSE);
+    }
+
+    public function getJsonById($user_id, $json_id)
+    {
+        $sql = "SELECT * FROM `json` WHERE `user_id`=:user_id AND `json_id`=:json_id";
+        $query = $this->db->prepare($sql);
+        $parameters = array(':user_id' => $user_id, ':json_id' => $json_id);
+        $query->execute($parameters);
+        $result = $query->fetch();
+
+        return ($result);
+    }
+
+    public function getJsonIdByName($user_id, $json_name)
+    {
+        $sql = "SELECT `json_id` FROM `json` WHERE `user_id`=:user_id AND `json_name`=:json_name";
+        $query = $this->db->prepare($sql);
+        $parameters = array(':user_id' => $user_id, ':json_name' => $json_name);
+        $query->execute($parameters);
+        $result = $query->fetch();
+
+        return ($result->json_id);
     }
 
     public function getJsonList($user_id)
@@ -63,7 +85,18 @@ class Model
         return ($query->fetchAll());
     }
 
-    public function getLanguage($language_id)
+    public function getLanguageKeyById($language_id)
+    {
+        $sql = "SELECT `language_key` FROM `language` WHERE `language_id`=:language_id";
+        $query = $this->db->prepare($sql);
+        $parameters = array(':language_id' => $language_id);
+        $query->execute($parameters);
+        $result = $query->fetch();
+
+        return ($result->language_key);
+    }
+
+    public function getLanguageNameById($language_id)
     {
         $sql = "SELECT `language_name` FROM `language` WHERE `language_id`=:language_id";
         $query = $this->db->prepare($sql);
@@ -71,14 +104,25 @@ class Model
         $query->execute($parameters);
         $result = $query->fetch();
 
-        return ($result->language_name);
+        return ($result->language_key);
     }
 
-    public function addJson($language_id_source, $language_id_target, $user_id, $json_name, $json_string)
+    public function getLanguageNameByKey($language_key)
     {
-        $sql = "INSERT INTO `json` (`language_id_source`, `language_id_target`, `user_id`, `json_name`, `json_string`) VALUES (:language_id_source, :language_id_target, :user_id, :json_name, :json_string)";
+        $sql = "SELECT `language_name` FROM `language` WHERE `language_key`=:language_key";
         $query = $this->db->prepare($sql);
-        $parameters = array(':language_id_source' => $language_id_source, ':language_id_target' => $language_id_target, ':user_id' => $user_id, ':json_name' => $json_name, ':json_string' => $json_string);
+        $parameters = array(':language_key' => $language_key);
+        $query->execute($parameters);
+        $result = $query->fetch();
+
+        return ($result->language_key);
+    }
+
+    public function addJson($user_id, $json_name)
+    {
+        $sql = "INSERT INTO `json` (`user_id`, `json_name`) VALUES (:user_id, :json_name)";
+        $query = $this->db->prepare($sql);
+        $parameters = array(':user_id' => $user_id, ':json_name' => $json_name);
         $query->execute($parameters);
     }
 
@@ -90,38 +134,18 @@ class Model
         $query->execute($parameters);
     }
 
-    public function createDB()
+    public function install()
     {
         if (isset($_SESSION['user_id']))
         {
             if ($_SESSION['user_id'] == 1)
             {
-                $files = scandir(SRC . 'sql/create');
+                $files = scandir(SRC . 'sql');
                 $files = array_values(array_diff($files, array(".", "..")));
 
                 foreach($files as $file)
                 {
-                    $sql = file_get_contents(SRC . 'sql/create/' . $file);
-                    $query = $this->db->prepare($sql);
-                    $query->execute();
-                }
-
-            }
-        }
-    }
-
-    public function seedDB()
-    {
-        if (isset($_SESSION['user_id']))
-        {
-            if ($_SESSION['user_id'] == 1)
-            {
-                $files = scandir(SRC . 'sql/seed');
-                $files = array_values(array_diff($files, array(".", "..")));
-
-                foreach($files as $file)
-                {
-                    $sql = file_get_contents(SRC . 'sql/seed/' . $file);
+                    $sql = file_get_contents(SRC . 'sql/' . $file);
                     $query = $this->db->prepare($sql);
                     $query->execute();
                 }

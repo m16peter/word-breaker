@@ -18,6 +18,7 @@
 
     <style>
         /* Font Awesome SVG Icons: https://fontawesome.com/license */
+        /* css */
         * {
             outline: none;
             text-decoration: none;
@@ -192,7 +193,7 @@
 
             <div class="flex"></div>
 
-            <a class="logo" href=''>
+            <a class="logo" href="<?php echo URL; ?>">
                 <div>WORD BREAKER</div>
             </a>
 
@@ -349,7 +350,7 @@
 
                     if (response.data)
                     {
-                        window.location = 'translate';
+                        window.location = 'document';
                     }
                 }
             };

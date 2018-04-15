@@ -3,7 +3,7 @@
 session_start();
 
 define('SRC', dirname(__DIR__) . '/src/');
-define('MVC', dirname(__DIR__) . '/src/mvc/');
+define('MVC', SRC . '/mvc/');
 define('MODEL', MVC . 'model/');
 define('VIEW', MVC . 'view/');
 define('CONTROLLER', MVC . 'controller/');

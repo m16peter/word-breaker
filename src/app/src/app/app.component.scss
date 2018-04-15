@@ -1,0 +1,296 @@
+.translate-app {
+	position: relative;
+	background: #fff;
+	overflow-y: auto;
+
+	.config-fixed {
+		transition: all 300ms ease-in-out;
+		display: flex;
+		position: fixed;
+		left: 0;
+		top: 0;
+		width: 100px;
+		height: 100%;
+		background: #fff;
+		z-index: 1000;
+
+		.config {
+			display: flex;
+			flex-direction: column;
+		}
+		.toggle {
+			display: flex;
+			position: relative;
+			width: 20px;
+			height: 100%;
+			background: #ccc;
+			cursor: pointer;
+			opacity: 0.25;
+			transition: all 300ms ease-in-out;
+
+			&:hover {
+				opacity: 1;
+			}
+			img {
+				margin: auto 0;
+				height: 20px;
+				width: 20px;
+			}
+		}
+	}
+
+	.content {
+		transition: all 300ms ease-in-out;
+		min-width: 600px;
+		position: relative;
+		width: calc(100% - 120px);
+		height: calc(100% - 20px);
+		left: 100px;
+
+		.icon {
+			position: relative;
+			display: flex;
+			width: 24px;
+			height: 24px;
+			margin: 20px;
+			border-radius: 2px;
+			opacity: 0;
+			border: 1px solid #ddd;
+
+			img {
+				width: 24px;
+				height: 24px;
+				margin: 0;
+			}
+		}
+	}
+
+	.remove {
+		opacity: 0;
+	}
+
+	.active {
+		background: #eee;
+	}
+
+	.advanced {
+		.icon {
+			opacity: 1;
+		}
+		.box, .sm {
+			display: flex;
+		}
+		.lines {
+			margin: 0 20px 20px 20px;
+		}
+		.remove {
+			opacity: 1;
+		}
+	}
+
+	.sm {
+		display: none;
+		width: 35px;
+		height: 35px;
+		border-radius: 5px;
+		margin: 5px auto;
+
+		&:hover {
+			-webkit-box-shadow: inset 0 0 5px 0 rgba(0,0,0, .25);
+			-moz-box-shadow: inset 0 0 5px 0 rgba(0,0,0, .25);
+			box-shadow: inset 0 0 5px 0 rgba(0,0,0, .25);
+		}
+		img {
+			width: 32px;
+			height: 32px;
+			margin: auto;
+		}
+	}
+
+	.hidden {
+		visibility: hidden;
+	}
+
+}
+
+.full_mode {
+	.config-fixed {
+		transform: translateX(-80px);
+	}
+	.content {
+		width: calc(100% - 30px);
+		left: 10px;
+
+		.icon {
+			opacity: 0;
+		}
+	}
+	.advanced {
+		.box, .sm {
+			display: none;
+		}
+		.lines {
+			margin: 0 20px 20px 10px;
+		}
+	}
+}
+
+.icon {
+	position: relative;
+	display: flex;
+	width: 58px;
+	height: 58px;
+	border-radius: 5px;
+	border: 1px solid #eee;
+	margin: 10px;
+	background: #fff;
+
+	&:hover {
+		-webkit-box-shadow: inset 0 0 15px 0 rgba(0,0,0, .25);
+		-moz-box-shadow: inset 0 0 15px 0 rgba(0,0,0, .25);
+		box-shadow: inset 0 0 15px 0 rgba(0,0,0, .25);
+	}
+	&:active
+	{
+		background: #eee;
+	}
+	img {
+		cursor: pointer;
+		width: 48px;
+		height: 48px;
+		margin: 5px;
+	}
+}
+
+.lines {
+	position: relative;
+	display: flex;
+	opacity: 0.5;
+	margin: 0 20px 20px 10px;
+
+	.lang-from, .lang-to {
+		position: relative;
+		flex: 1;
+		min-height: 50px;
+		margin: 0 10px 10px 20px;
+
+		textarea {
+			overflow: hidden;
+			resize: none;
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			top: 0;
+			left: 0;
+			padding: 10px;
+			font-size: 16px;
+			line-height: 150%;
+			outline: none;
+			border: 1px solid #bbb;
+		}
+		.placeholder {
+			visibility: hidden;
+			position: relative;
+			display: flex;
+			width: 100%;
+			height: 100%;
+			padding: 10px;
+			font-size: 16px;
+			line-height: 150%;
+			white-space: pre-wrap;
+			word-wrap: break-word;
+			border: 1px solid transparent;
+		}
+		.loading {
+			position: absolute;
+			top: 10px;
+			left: 0;
+			width: 100%;
+			height: calc(100% - 10px);
+			display: flex;
+
+			.loader {
+				width: 50px;
+				height: 50px;
+			}
+			.loader > div {
+				opacity: 0.25;
+				width: 40px;
+				height: 40px;
+				top: 5px;
+				left: 5px;
+			}
+
+		}
+	}
+}
+
+.box {
+	display: none;
+	position: relative;
+	top: 25px;
+	width: 25px;
+	height: 25px;
+
+	> div {
+		position: relative;
+		width: 24px;
+		height: 24px;
+		border: 1px solid #ddd;
+		display: flex;
+		margin: auto 0;
+		cursor: pointer;
+		border-radius: 2px;
+
+		.box_deselected {
+			z-index: 2;
+			display: none;
+		}
+		.box_selected {
+			z-index: 1;
+			display: none;
+		}
+		img {
+			position: absolute;
+			top: 0;
+			left: 0;
+			width: 24px;
+			height: 24px;
+			transition: all 150ms ease-in;
+		}
+		&:hover {
+			-webkit-box-shadow: inset 0 0 8px 0 rgba(0,0,0, .25);
+			-moz-box-shadow: inset 0 0 8px 0 rgba(0,0,0, .25);
+			box-shadow: inset 0 0 8px 0 rgba(0,0,0, .25);
+
+			.box_deselected {
+				display: block;
+			}
+		}
+	}
+}
+
+.selected {
+	opacity: 1;
+
+	.lang-from, .lang-to {
+		textarea {
+			border: 1px solid #000;
+		}
+	}
+	.box {
+		> div {
+			.box_deselected {
+				display: block;
+			}
+			&:hover {
+				.box_deselected {
+					display: none;
+				}
+				.box_selected {
+					display: block;
+				}
+			}
+		}
+	}
+}

@@ -1,19 +1,12 @@
 <?php
 
-/*
-* Translate class
-*/
-class Translate extends Controller
+class Document extends Controller
 {
-
-    /*
-    * Translate view
-    */
     public function index()
     {
         if (isset($_SESSION['user_id']) && isset($_SESSION['json_id']))
         {
-            require VIEW . 'translate.php';
+            require VIEW . 'document.php';
         }
         else
         {

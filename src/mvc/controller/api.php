@@ -19,7 +19,6 @@ class Api extends Controller
 
     public function login()
     {
-        $_SESSION['error'] = array('user_email'=>'','user_password'=>'');
         $input = json_decode(file_get_contents('php://input'));
 
         try
@@ -30,10 +29,6 @@ class Api extends Controller
             {
                 echo json_encode(array('data' => 'user_email'), JSON_FORCE_OBJECT);
                 return;
-            }
-            else
-            {
-                $_SESSION['user_email'] = $user_email;
             }
 
             $user_password = $input->data->password;
@@ -48,7 +43,6 @@ class Api extends Controller
                 $user_password = hash('whirlpool', $user_password);
             }
 
-            // find id if user exists
             $user_id = $this->controller->model->getUser($user_email, $user_password);
 
             if ($user_id == FALSE)
@@ -60,7 +54,6 @@ class Api extends Controller
                 }
                 else
                 {
-                    // create user if not exists
                     $this->controller->model->addUser($user_email, $user_password);
                     $user_id = $this->controller->model->getUser($user_email, $user_password);
 
@@ -71,7 +64,6 @@ class Api extends Controller
                 }
             }
 
-            $_SESSION['error'] = array('user_email' => '', 'user_password' => '');
             $_SESSION['user_id'] = $user_id;
 
             echo json_encode(array('data' => 'ok'), JSON_FORCE_OBJECT);
@@ -96,7 +88,7 @@ class Api extends Controller
 
         foreach($list as $item)
         {
-            array_push($response, new Json($item->json_id, $item->json_name));
+            array_push($response, new JsonDocument($item->json_id, $item->json_name));
         }
 
         echo json_encode(new JsonArrayResponse($response));
@@ -104,22 +96,30 @@ class Api extends Controller
 
     public function newDocument()
     {
-        // TODO: make this default in globals:
-        $language_id_source = 1;
-        $language_id_target = 2;
         $user_id = $_SESSION['user_id'];
-        $json_name = 'New Document';
-        $json_string = '{"data":[]}';
-
-        $this->controller->model->addJson($language_id_source, $language_id_target, $user_id, $json_name, $json_string);
 
         $documents = $this->controller->model->getJsonList($user_id);
-        $json_id = $documents[count($documents) - 1]->json_id;
 
-        $source_language = $this->controller->model->getLanguage($language_id_source);
-        $target_language = $this->controller->model->getLanguage($language_id_target);
+        $index = '';
+        $i = 0;
+        $n = count($documents);
 
-        echo json_encode(array('data' => new Json($json_id, $json_name, $source_language, $target_language)), JSON_FORCE_OBJECT);
+        while ($i < $n)
+        {
+            if (array_search(('New Document' . $index), array_column($documents, 'json_name')) === FALSE)
+            {
+                break;
+            }
+            $index = ' ' . ++$i;
+        }
+
+        $json_name = 'New Document' . $index;
+
+        $this->controller->model->addJson($user_id, $json_name);
+
+        $json_id = $this->controller->model->getJsonIdByName($user_id, $json_name);
+
+        echo json_encode(array('data' => new JsonDocument($json_id, $json_name)), JSON_FORCE_OBJECT);
     }
 
     public function deleteDocument()
@@ -128,7 +128,7 @@ class Api extends Controller
         $json_id = $input->data;
         $user_id = $_SESSION['user_id'];
 
-        if ($this->controller->model->getJson($user_id, $json_id) != FALSE)
+        if ($this->controller->model->jsonExists($user_id, $json_id))
         {
             $this->controller->model->deleteJson($json_id);
             echo json_encode(array('data' => true), JSON_FORCE_OBJECT);
@@ -145,14 +145,128 @@ class Api extends Controller
         $json_id = $input->data;
         $user_id = $_SESSION['user_id'];
 
-        if ($this->controller->model->getJson($user_id, $json_id) != FALSE)
+        if ($this->controller->model->jsonExists($user_id, $json_id))
         {
             $_SESSION['json_id'] = $json_id;
             echo json_encode(array('data' => true), JSON_FORCE_OBJECT);
         }
         else
         {
+            var_dump($json_id);
+            var_dump($user_id);
             echo json_encode(array('data' => false), JSON_FORCE_OBJECT);
         }
     }
+
+    public function getJson()
+    {
+        $user_id = $_SESSION['user_id'];
+        $json_id = $_SESSION['json_id'];
+
+        $json = $this->controller->model->getJsonById($user_id, $json_id);
+
+        if ($json == FALSE)
+        {
+            echo json_encode(array('data' => false), JSON_FORCE_OBJECT);
+        }
+        else
+        {
+            echo json_encode(
+                array('data' => New Json(
+                    $json_id,
+                    $json->json_name,
+                    $json->json_string,
+                    $this->controller->model->getLanguageKeyById($json->language_id_source),
+                    $this->controller->model->getLanguageKeyById($json->language_id_target)
+                )
+            ), JSON_FORCE_OBJECT);
+        }
+    }
+
+    /*
+     public function translate()
+    {
+        $input = file_get_contents('php://input');
+        $input = json_decode($input);
+
+        if ($input != null && is_string($input->data) && $input->data != '')
+        {
+            // search local db
+            $txt = rawurlencode($input->data);
+            $db_data = DB::table('dictionary')->where('source', $txt)->value('target');
+
+            if ($db_data == null)
+            {
+                // curl -> google translate api
+                $url = 'https://translation.googleapis.com/language/translate/v2';
+                $source = 'sk';
+                $target = 'ro';
+                $key = 'AIzaSyDEecuqDeU1w2YmY7URVP9vpgypEFBjKQw';
+
+                $handle = curl_init($url.'?q='.$txt.'&key='.$key.'&source='.$source.'&target='.$target);
+                curl_setopt($handle, CURLOPT_RETURNTRANSFER, true);
+                $g_data = curl_exec($handle);
+                $responseDecoded = json_decode($g_data, true);
+                $responseCode = curl_getinfo($handle, CURLINFO_HTTP_CODE);
+                curl_close($handle);
+
+                if ($responseCode == 200)
+                {
+                    $response->data = $responseDecoded['data']['translations'][0]['translatedText'];
+
+                    DB::table('dictionary')->insert([
+                        'source'     => $txt,
+                        'target'     => $response->data,
+                        'created_at' => date("Y-m-d H:i:s")
+                    ]);
+                }
+            }
+            else
+            {
+                $response->data = rawurldecode($db_data);
+            }
+        }
+
+        return json_encode($response);
+    }
+    */
+
+    /*
+    public function update()
+    {
+        $input = file_get_contents('php://input');
+        $input = json_decode($input);
+
+        if ($input != null && is_string($input->data->source) && is_string($input->data->target))
+        {
+            // init
+            $source = rawurlencode($input->data->source);
+            $target = rawurlencode($input->data->target);
+
+            // search local db
+            $db_data = DB::table('dictionary')->where('source', $source)->value('target');
+
+            if ($db_data == null)
+            {
+                DB::table('dictionary')->insert([
+                    'source'     => $source,
+                    'target'     => $target,
+                    'created_at' => date("Y-m-d H:i:s"),
+                    'updated_at' => date("Y-m-d H:i:s")
+                ]);
+            }
+            else
+            {
+                DB::table('dictionary')->where('source', $source)->update([
+                    'target'     => $target,
+                    'updated_at' => date("Y-m-d H:i:s")
+                ]);
+            }
+
+            $response->data = 'success';
+        }
+
+        return json_encode($response);
+    }
+    */
 }

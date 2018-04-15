@@ -62,9 +62,6 @@
             display: flex;
             margin: 0 20px;
         }
-        .page .content .input > label {
-            display: none;
-        }
         .page .content .input > span {
             margin: auto;
         }
@@ -119,7 +116,7 @@
 
             <div class="flex"></div>
 
-            <a class="logo" href="">
+            <a class="logo" href="<?php echo URL; ?>">
                 <div>WORD BREAKER</div>
             </a>
 
